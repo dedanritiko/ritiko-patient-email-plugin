@@ -1,0 +1,23 @@
+{
+  "author": "Ritiko Development Team",
+  "categories": [
+    "patient",
+    "communication"
+  ],
+  "dependencies": [],
+  "description": "Extends Patient model with email functionality and sendEmail method without modifying original model files",
+  "django_apps": [
+    "plugins.patient_email_plugin"
+  ],
+  "email": "dev@ritiko.com",
+  "enabled": true,
+  "name": "Patient Email Plugin",
+  "tags": [
+    "patient",
+    "email",
+    "extension",
+    "communication"
+  ],
+  "url": "https://github.com/ritiko/ritiko-py",
+  "version": "1.0.0"
+}

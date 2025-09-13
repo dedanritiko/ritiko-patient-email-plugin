@@ -1,0 +1,186 @@
+<!-- Email section for patient detail page -->
+<div class="card mt-3" id="patient-email-section">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-envelope"></i>
+            Email Information
+        </h5>
+        {% if has_email_permission %}
+            <div class="card-tools">
+                <a href="{% url 'patient_email_plugin:edit_patient_email' patient.pk %}" 
+                   class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-edit"></i> Edit Email Settings
+                </a>
+            </div>
+        {% endif %}
+    </div>
+    <div class="card-body">
+        {% if email_profile %}
+            <div class="row">
+                <div class="col-md-6">
+                    <strong>Primary Email:</strong>
+                    {% if email_profile.email %}
+                        <span class="text-success">
+                            <i class="fas fa-envelope"></i>
+                            {{ email_profile.email }}
+                            {% if email_profile.email_verified %}
+                                <i class="fas fa-check-circle text-success ml-1" title="Verified"></i>
+                            {% else %}
+                                <i class="fas fa-exclamation-triangle text-warning ml-1" title="Not Verified"></i>
+                            {% endif %}
+                        </span>
+                    {% else %}
+                        <span class="text-muted">Not provided</span>
+                    {% endif %}
+                </div>
+                
+                <div class="col-md-6">
+                    <strong>Secondary Email:</strong>
+                    {% if email_profile.secondary_email %}
+                        <span class="text-info">
+                            <i class="fas fa-envelope"></i>
+                            {{ email_profile.secondary_email }}
+                        </span>
+                    {% else %}
+                        <span class="text-muted">Not provided</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <strong>Email Notifications:</strong>
+                    {% if email_profile.email_notifications_enabled %}
+                        <span class="badge badge-success">Enabled</span>
+                    {% else %}
+                        <span class="badge badge-warning">Disabled</span>
+                    {% endif %}
+                </div>
+                
+                <div class="col-md-6">
+                    <strong>Preferred Email:</strong>
+                    <span class="badge badge-info">{{ email_profile.get_preferred_email_display }}</span>
+                </div>
+            </div>
+            
+            {% if email_profile.email_bounced %}
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Warning:</strong> Emails to this patient have bounced. 
+                            Please verify the email address.
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            {% if email_profile.last_email_sent %}
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <small class="text-muted">
+                            <i class="fas fa-clock"></i>
+                            Last email sent: {{ email_profile.last_email_sent|date:"M d, Y H:i" }}
+                        </small>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Quick Action Buttons -->
+            {% if has_email_permission and email_profile.get_preferred_email %}
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-primary" 
+                                    onclick="sendQuickEmail('send_welcome')">
+                                <i class="fas fa-hand-wave"></i> Send Welcome Email
+                            </button>
+                            <button type="button" class="btn btn-outline-info" 
+                                    onclick="sendQuickEmail('verify_email')">
+                                <i class="fas fa-check-circle"></i> Send Verification
+                            </button>
+                            <a href="{% url 'patient_email_plugin:send_email' patient.pk %}" 
+                               class="btn btn-outline-success">
+                                <i class="fas fa-paper-plane"></i> Send Custom Email
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+        {% else %}
+            <div class="text-center text-muted py-4">
+                <i class="fas fa-envelope-open-text fa-3x mb-3"></i>
+                <p>No email profile configured for this patient.</p>
+                {% if has_email_permission %}
+                    <a href="{% url 'patient_email_plugin:edit_patient_email' patient.pk %}" 
+                       class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add Email Information
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- JavaScript for quick actions -->
+<script>
+function sendQuickEmail(action) {
+    // Show loading state
+    const button = event.target;
+    const originalContent = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+    button.disabled = true;
+    
+    // Send AJAX request
+    fetch("{% url 'patient_email_plugin:ajax_email_quick_actions' patient.pk %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: `action=${action}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            showNotification(data.message, 'success');
+        } else {
+            // Show error message
+            showNotification(data.message || 'Failed to send email', 'error');
+        }
+    })
+    .catch(error => {
+        showNotification('An error occurred while sending the email', 'error');
+    })
+    .finally(() => {
+        // Restore button state
+        button.innerHTML = originalContent;
+        button.disabled = false;
+    });
+}
+
+function showNotification(message, type) {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="close" data-dismiss="alert">
+            <span>&times;</span>
+        </button>
+    `;
+    
+    // Insert at top of email section
+    const emailSection = document.getElementById('patient-email-section');
+    emailSection.insertBefore(notification, emailSection.firstChild);
+    
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 5000);
+}
+</script>

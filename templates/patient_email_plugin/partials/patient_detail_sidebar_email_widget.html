@@ -1,0 +1,59 @@
+<!-- Email widget for patient detail sidebar -->
+<div class="card card-outline card-primary">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-envelope"></i>
+            Email Contact
+        </h3>
+    </div>
+    <div class="card-body">
+        {% if has_email %}
+            <div class="text-center">
+                <p class="mb-2">
+                    <strong>{{ email_profile.get_preferred_email }}</strong>
+                </p>
+                
+                {% if email_profile.email_verified %}
+                    <span class="badge badge-success mb-2">
+                        <i class="fas fa-check-circle"></i> Verified
+                    </span>
+                {% else %}
+                    <span class="badge badge-warning mb-2">
+                        <i class="fas fa-exclamation-triangle"></i> Unverified
+                    </span>
+                {% endif %}
+                
+                {% if email_profile.email_notifications_enabled %}
+                    <span class="badge badge-info mb-2">
+                        <i class="fas fa-bell"></i> Notifications On
+                    </span>
+                {% else %}
+                    <span class="badge badge-secondary mb-2">
+                        <i class="fas fa-bell-slash"></i> Notifications Off
+                    </span>
+                {% endif %}
+                
+                <div class="mt-3">
+                    <a href="mailto:{{ email_profile.get_preferred_email }}" 
+                       class="btn btn-primary btn-sm btn-block">
+                        <i class="fas fa-envelope"></i> Send Email
+                    </a>
+                    
+                    <a href="{% url 'patient_email_plugin:send_email' patient.pk %}" 
+                       class="btn btn-outline-primary btn-sm btn-block">
+                        <i class="fas fa-paper-plane"></i> Send via System
+                    </a>
+                </div>
+            </div>
+        {% else %}
+            <div class="text-center text-muted">
+                <i class="fas fa-envelope-open-text fa-2x mb-2"></i>
+                <p class="mb-2">No email address</p>
+                <a href="{% url 'patient_email_plugin:edit_patient_email' patient.pk %}" 
+                   class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-plus"></i> Add Email
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
