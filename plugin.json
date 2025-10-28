@@ -19,5 +19,6 @@
     "communication"
   ],
   "url": "https://github.com/ritiko/ritiko-py",
-  "version": "1.0.0"
+  "version": "1.0.0",
+  "id": "ritiko-patient-email-plugin"
 }

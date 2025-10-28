@@ -1,0 +1,8 @@
+include README.md
+include LICENSE
+include plugin.json
+recursive-include */migrations *
+recursive-include */templates *
+recursive-include */static *
+recursive-exclude * __pycache__
+recursive-exclude * *.py[cod]
